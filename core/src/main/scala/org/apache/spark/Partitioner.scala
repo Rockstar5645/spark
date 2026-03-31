@@ -64,17 +64,37 @@ object Partitioner {
    */
   def defaultPartitioner(rdd: RDD[_], others: RDD[_]*): Partitioner = {
     val rdds = (Seq(rdd) ++ others)
-    val hasPartitioner = rdds.filter(_.partitioner.exists(_.numPartitions > 0))
+    System.err.println("=== AKHIL [3a1a] defaultPartitioner called on " + this + " ===")
+    System.err.println("=== AKHIL [3a1b] defaultPartitioner rdds :: " + rdds + " ===")
+
+    // val hasPartitioner = rdds.filter(_.partitioner.exists(_.numPartitions > 0))
+    val hasPartitioner = rdds.filter(
+      input => {
+        val hasPart = input.partitioner.exists(
+          inner_input => {
+            System.err.println("=== AKHIL [3a1c] defaultPartitioner hasPartitioner check on " + input + " :: " + inner_input + " ===")
+            inner_input.numPartitions > 0
+          }
+        )
+        System.err.println("=== AKHIL [3a1d] defaultPartitioner hasPartitioner check on " + input + " :: " + hasPart + " ===")
+        hasPart
+      }
+    )
+
+    System.err.println("=== AKHIL [3a1c] defaultPartitioner hasPartitioner :: " + hasPartitioner + " ===")
 
     val hasMaxPartitioner: Option[RDD[_]] = if (hasPartitioner.nonEmpty) {
+      System.err.println("=== AKHIL [3a1d] defaultPartitioner hasMaxPartitioner (non-empty) :: " + hasPartitioner + " ===")
       Some(hasPartitioner.maxBy(_.partitions.length))
     } else {
+      System.err.println("=== AKHIL [3a1e] defaultPartitioner hasMaxPartitioner (empty) :: " + hasPartitioner + " ===")
       None
     }
 
     val defaultNumPartitions = if (rdd.context.conf.contains("spark.default.parallelism")) {
       rdd.context.defaultParallelism
     } else {
+      System.err.println("=== AKHIL [3a1g] defaultPartitioner defaultNumPartitions from rdds :: " + rdds.map(_.partitions.length).max + " ===")
       rdds.map(_.partitions.length).max
     }
 
@@ -82,8 +102,10 @@ object Partitioner {
     // than or equal to the default number of partitions, use the existing partitioner.
     if (hasMaxPartitioner.nonEmpty && (isEligiblePartitioner(hasMaxPartitioner.get, rdds) ||
         defaultNumPartitions <= hasMaxPartitioner.get.getNumPartitions)) {
+      System.err.println("=== AKHIL [3a1h] defaultPartitioner using existing partitioner :: " + hasMaxPartitioner.get.partitioner.get + " ===")
       hasMaxPartitioner.get.partitioner.get
     } else {
+      System.err.println("=== AKHIL [3a1i] defaultPartitioner using new HashPartitioner :: " + defaultNumPartitions + " ===")
       new HashPartitioner(defaultNumPartitions)
     }
   }

@@ -935,6 +935,7 @@ class SparkContext(config: SparkConf) extends Logging {
       seq: Seq[T],
       numSlices: Int = defaultParallelism): RDD[T] = withScope {
     assertNotStopped()
+    logError("=== AKHIL [1] parallelize: " + seq.size + " elements, " + numSlices + " slices ===")
     new ParallelCollectionRDD[T](this, seq, numSlices, Map[Int, Seq[String]]())
   }
 
@@ -2390,6 +2391,7 @@ class SparkContext(config: SparkConf) extends Logging {
     if (conf.getBoolean("spark.logLineage", false)) {
       logInfo("RDD's recursive dependencies:\n" + rdd.toDebugString)
     }
+    logError("=== AKHIL [4] SparkContext.runJob: rdd=" + rdd + " partitions=" + partitions.size + " callSite=" + callSite.shortForm + " ===")
     dagScheduler.runJob(rdd, cleanedFunc, partitions, callSite, resultHandler, localProperties.get)
     progressBar.foreach(_.finishAll())
     rdd.doCheckpoint()

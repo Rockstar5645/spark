@@ -69,6 +69,8 @@ class PairRDDFunctions[K, V](self: RDD[(K, V)])
    * @note V and C can be different -- for example, one might group an RDD of type
    * (Int, Int) into an RDD of type (Int, Seq[Int]).
    */
+
+  // combineByKeyWithClassTag[V]((v: V) => v, func, func, partitioner)
   def combineByKeyWithClassTag[C](
       createCombiner: V => C,
       mergeValue: (C, V) => C,
@@ -89,6 +91,7 @@ class PairRDDFunctions[K, V](self: RDD[(K, V)])
       self.context.clean(createCombiner),
       self.context.clean(mergeValue),
       self.context.clean(mergeCombiners))
+    logError("=== AKHIL [3b] combineByKeyWithClassTag: partitioner=" + partitioner + " mapSideCombine=" + mapSideCombine + " alreadyPartitioned=" + (self.partitioner == Some(partitioner)) + " ===")
     if (self.partitioner == Some(partitioner)) {
       self.mapPartitions(iter => {
         val context = TaskContext.get()
@@ -303,6 +306,9 @@ class PairRDDFunctions[K, V](self: RDD[(K, V)])
    * to a "combiner" in MapReduce.
    */
   def reduceByKey(partitioner: Partitioner, func: (V, V) => V): RDD[(K, V)] = self.withScope {
+    logError("=== AKHIL [3a2a] reduceByKey called on " + self + " ===")
+    logError("=== AKHIL [3a2b] reduceByKey partitioner " + partitioner + " ===")
+    logError("=== AKHIL [3a2b] reduceByKey func " + func + " ===")
     combineByKeyWithClassTag[V]((v: V) => v, func, func, partitioner)
   }
 
@@ -322,6 +328,7 @@ class PairRDDFunctions[K, V](self: RDD[(K, V)])
    * parallelism level.
    */
   def reduceByKey(func: (V, V) => V): RDD[(K, V)] = self.withScope {
+    logError("=== AKHIL [3a] reduceByKey called on " + self + " ===")
     reduceByKey(defaultPartitioner(self), func)
   }
 

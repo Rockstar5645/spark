@@ -1827,7 +1827,7 @@ private[spark] class DAGScheduler(
   private[scheduler] def handleTaskCompletion(event: CompletionEvent): Unit = {
     val task = event.task
     val stageId = task.stageId
-    logError("=== AKHIL [9] handleTaskCompletion: task=" + task + " stageId=" + stageId + " partition=" + task.partitionId + " reason=" + event.reason + " ===")
+    // logError("=== AKHIL [9] handleTaskCompletion: task=" + task + " stageId=" + stageId + " partition=" + task.partitionId + " reason=" + event.reason + " ===")
 
     outputCommitCoordinator.taskCompleted(
       stageId,

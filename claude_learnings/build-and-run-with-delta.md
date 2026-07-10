@@ -83,6 +83,7 @@ val updates = spark.range(10000)
   .withColumn("key", (rand() * 1000000).cast("long"))
   .withColumn("new_value", (rand() * 9999).cast("int"))
   .select("key", "new_value")
+  .toDF()
 
 DeltaTable.forPath(spark, tablePath).as("target")
   .merge(updates.as("source"), "target.key = source.key")

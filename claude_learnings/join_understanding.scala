@@ -9,12 +9,18 @@
 // Run with (NOTE: use a SMALL driver memory here — counterintuitive, but we
 // WANT spill, and 32g would just swallow the whole join in RAM):
 //
-//   SPARK_PREPEND_CLASSES=1 ./bin/spark-shell --master 'local[4]' \
-//     --driver-memory 4g \
-//     --jars '/home/asteralabs/second_home/fourth-repos/delta/spark/target/scala-2.12/delta-spark_2.12-3.3.2.jar,/home/asteralabs/second_home/fourth-repos/delta/storage/target/delta-storage-3.4.0-SNAPSHOT.jar' \
-//     --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
-//     --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" \
-//     -i claude_learnings/join_understanding.scala
+// SPARK_PREPEND_CLASSES=1 ./bin/spark-shell --master 'local[4]' \
+//   --driver-memory 4g \
+//   --conf "spark.local.dir=/home/asteralabs/second_home/fourth-repos/spark_tmp" \
+//   --conf "spark.diskStore.subDirectories=8" \
+//   --jars '/home/asteralabs/second_home/fourth-repos/delta/spark/target/scala-2.12/delta-spark_2.12-3.3.2.jar,/home/asteralabs/second_home/fourth-repos/delta/storage/target/delta-storage-3.4.0-SNAPSHOT.jar' \
+//   --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
+//   --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" \
+//   -i claude_learnings/join_understanding.scala
+//
+// NOTE: spark.local.dir (shuffle + spill scratch) MUST be passed at launch — it
+// is read once when the SparkContext starts, so spark.conf.set() in this script
+// has NO effect on it. At 400M rows expect tens of GB of shuffle+spill here.
 //
 // local[4] = 4 task slots in ONE JVM. That's your "4 workers". Shuffle files
 // are written to spark.local.dir on this machine and fetched back — exact same
@@ -34,7 +40,7 @@ val tableB = s"$basePath/join_table_b"
 //                             compresses in parquet — realistic vs your ATE data).
 //   Start smaller (N = 5,000,000, ~1.5 GB) to see spill fast, then scale up.
 // ---------------------------------------------------------------------------
-val N: Long = 40000000L        // rows per table
+val N: Long = 120000000L        // rows per table
 val payloadRepeat = 64         // bump to inflate row width
 val overlap: Long = N / 2      // how many keys the two tables share -> match count
 
@@ -56,7 +62,7 @@ spark.conf.set("spark.sql.adaptive.enabled", "false")
 //     memory = spill to disk. With 4g driver and 8 partitions over ~12GB, the
 //     sort-merge join's external sorter WILL spill. Crank to 4 for heavier spill,
 //     raise to 200 to (mostly) avoid it and see the contrast.
-spark.conf.set("spark.sql.shuffle.partitions", "8")
+spark.conf.set("spark.sql.shuffle.partitions", "24")
 
 // ---------------------------------------------------------------------------
 // BUILD THE TWO TABLES
@@ -69,20 +75,27 @@ spark.conf.set("spark.sql.shuffle.partitions", "8")
 // ---------------------------------------------------------------------------
 def makeTable(startId: Long, count: Long) = {
   spark.range(startId, startId + count)
-    .withColumn("artifact_id", sha2(col("id").cast("string"), lit(256)))
+    .withColumn("artifact_id", sha2(col("id").cast("string"), 256))
     .withColumn("value", pmod(col("id"), lit(100)).cast("int"))
     .withColumn("payload", repeat(substring(col("artifact_id"), 1, 4), payloadRepeat))
     .select("artifact_id", "value", "payload")
 }
 
-println(s"\n=== writing table A: $N rows -> $tableA ===")
-makeTable(0L, N)
-  .write.format("delta").mode("overwrite").save(tableA)
+// setJobGroup(groupId, description) — every job triggered until the next
+// setJobGroup call is tagged with this group. The description is what shows up
+// in the Spark UI "Jobs" tab, so each phase below gets a readable label instead
+// of the default "save at ..." / "count at ..." callsite string.
 
-println(s"\n=== writing table B: $N rows (overlap=$overlap) -> $tableB ===")
-// B starts at N-overlap so ids [N-overlap, N) are shared with A.
-makeTable(N - overlap, N)
-  .write.format("delta").mode("overwrite").save(tableB)
+// println(s"\n=== writing table A: $N rows -> $tableA ===")
+// sc.setJobGroup("write-A", s"Write table A ($N rows) to Delta")
+// makeTable(0L, N)
+//   .write.format("delta").mode("overwrite").save(tableA)
+
+// println(s"\n=== writing table B: $N rows (overlap=$overlap) -> $tableB ===")
+// // B starts at N-overlap so ids [N-overlap, N) are shared with A.
+// sc.setJobGroup("write-B", s"Write table B ($N rows, overlap=$overlap) to Delta")
+// makeTable(N - overlap, N)
+//   .write.format("delta").mode("overwrite").save(tableB)
 
 // ---------------------------------------------------------------------------
 // THE JOIN + FILTER
@@ -104,11 +117,14 @@ val joined = a.join(b, a("artifact_id") === b("artifact_id"))
 // Each Exchange is where SortShuffleWriter runs on the map side and
 // BlockStoreShuffleReader fetches on the reduce side.
 println("\n=== PHYSICAL PLAN (read bottom-up) ===")
+sc.setJobGroup("explain", "explain(true) — build & print physical plan (no data jobs)")
 joined.explain(true)
 
 // An ACTION to actually execute it. count() forces the whole shuffle+join+spill.
 println("\n=== executing join (watch AKHIL [10a]/[10b] write, [11] read traces) ===")
+sc.setJobGroup("join-count", s"SortMergeJoin A><B + filter, count() (shuffle.partitions=${spark.conf.get("spark.sql.shuffle.partitions")})")
 val matched = joined.count()
+sc.clearJobGroup()  // stop tagging subsequent jobs with the join group
 println(s"\n=== matched rows after filter: $matched ===")
 
 // ---------------------------------------------------------------------------

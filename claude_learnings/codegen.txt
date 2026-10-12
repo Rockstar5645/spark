@@ -1,0 +1,507 @@
+Found 5 WholeStageCodegen subtrees.
+== Subtree 1 / 5 (maxMethodCodeSize:322; maxConstantPoolSize:150(0.23% used); numInnerClasses:0) ==
+*(1) Filter ((isnotnull(value#1950) AND (value#1950 > 50)) AND isnotnull(join_key#1949))
++- *(1) ColumnarToRow
+   +- FileScan parquet [join_key#1949,value#1950] Batched: true, DataFilters: [isnotnull(value#1950), (value#1950 > 50), isnotnull(join_key#1949)], Format: Parquet, Location: PreparedDeltaFileIndex(1 paths)[file:/path/to/learn_root/saved_delta_tables/join_table_a_small], PartitionFilters: [], PushedFilters: [IsNotNull(value), GreaterThan(value,50), IsNotNull(join_key)], ReadSchema: struct<join_key:string,value:int>
+
+Generated code:
+/* 001 */ public Object generate(Object[] references) {
+/* 002 */   return new GeneratedIteratorForCodegenStage1(references);
+/* 003 */ }
+/* 004 */
+/* 005 */ // codegenStageId=1
+/* 006 */ final class GeneratedIteratorForCodegenStage1 extends org.apache.spark.sql.execution.BufferedRowIterator {
+/* 007 */   private Object[] references;
+/* 008 */   private scala.collection.Iterator[] inputs;
+/* 009 */   private int columnartorow_batchIdx_0;
+/* 010 */   private org.apache.spark.sql.execution.vectorized.OnHeapColumnVector[] columnartorow_mutableStateArray_2 = new org.apache.spark.sql.execution.vectorized.OnHeapColumnVector[2];
+/* 011 */   private org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter[] columnartorow_mutableStateArray_3 = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter[2];
+/* 012 */   private org.apache.spark.sql.vectorized.ColumnarBatch[] columnartorow_mutableStateArray_1 = new org.apache.spark.sql.vectorized.ColumnarBatch[1];
+/* 013 */   private scala.collection.Iterator[] columnartorow_mutableStateArray_0 = new scala.collection.Iterator[1];
+/* 014 */
+/* 015 */   public GeneratedIteratorForCodegenStage1(Object[] references) {
+/* 016 */     this.references = references;
+/* 017 */   }
+/* 018 */
+/* 019 */   public void init(int index, scala.collection.Iterator[] inputs) {
+/* 020 */     partitionIndex = index;
+/* 021 */     this.inputs = inputs;
+/* 022 */     columnartorow_mutableStateArray_0[0] = inputs[0];
+/* 023 */
+/* 024 */     columnartorow_mutableStateArray_3[0] = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter(2, 32);
+/* 025 */     columnartorow_mutableStateArray_3[1] = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter(2, 32);
+/* 026 */
+/* 027 */   }
+/* 028 */
+/* 029 */   private void columnartorow_nextBatch_0() throws java.io.IOException {
+/* 030 */     if (columnartorow_mutableStateArray_0[0].hasNext()) {
+/* 031 */       columnartorow_mutableStateArray_1[0] = (org.apache.spark.sql.vectorized.ColumnarBatch)columnartorow_mutableStateArray_0[0].next();
+/* 032 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[1] /* numInputBatches */).add(1);
+/* 033 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[0] /* numOutputRows */).add(columnartorow_mutableStateArray_1[0].numRows());
+/* 034 */       columnartorow_batchIdx_0 = 0;
+/* 035 */       columnartorow_mutableStateArray_2[0] = (org.apache.spark.sql.execution.vectorized.OnHeapColumnVector) columnartorow_mutableStateArray_1[0].column(0);
+/* 036 */       columnartorow_mutableStateArray_2[1] = (org.apache.spark.sql.execution.vectorized.OnHeapColumnVector) columnartorow_mutableStateArray_1[0].column(1);
+/* 037 */
+/* 038 */     }
+/* 039 */   }
+/* 040 */
+/* 041 */   protected void processNext() throws java.io.IOException {
+/* 042 */     if (columnartorow_mutableStateArray_1[0] == null) {
+/* 043 */       columnartorow_nextBatch_0();
+/* 044 */     }
+/* 045 */     while ( columnartorow_mutableStateArray_1[0] != null) {
+/* 046 */       int columnartorow_numRows_0 = columnartorow_mutableStateArray_1[0].numRows();
+/* 047 */       int columnartorow_localEnd_0 = columnartorow_numRows_0 - columnartorow_batchIdx_0;
+/* 048 */       for (int columnartorow_localIdx_0 = 0; columnartorow_localIdx_0 < columnartorow_localEnd_0; columnartorow_localIdx_0++) {
+/* 049 */         int columnartorow_rowIdx_0 = columnartorow_batchIdx_0 + columnartorow_localIdx_0;
+/* 050 */         do {
+/* 051 */           boolean columnartorow_isNull_1 = columnartorow_mutableStateArray_2[1].isNullAt(columnartorow_rowIdx_0);
+/* 052 */           int columnartorow_value_1 = columnartorow_isNull_1 ? -1 : (columnartorow_mutableStateArray_2[1].getInt(columnartorow_rowIdx_0));
+/* 053 */
+/* 054 */           boolean filter_value_2 = !columnartorow_isNull_1;
+/* 055 */           if (!filter_value_2) continue;
+/* 056 */
+/* 057 */           boolean filter_value_3 = false;
+/* 058 */           filter_value_3 = columnartorow_value_1 > 50;
+/* 059 */           if (!filter_value_3) continue;
+/* 060 */
+/* 061 */           boolean columnartorow_isNull_0 = columnartorow_mutableStateArray_2[0].isNullAt(columnartorow_rowIdx_0);
+/* 062 */           UTF8String columnartorow_value_0 = columnartorow_isNull_0 ? null : (columnartorow_mutableStateArray_2[0].getUTF8String(columnartorow_rowIdx_0));
+/* 063 */
+/* 064 */           boolean filter_value_8 = !columnartorow_isNull_0;
+/* 065 */           if (!filter_value_8) continue;
+/* 066 */
+/* 067 */           ((org.apache.spark.sql.execution.metric.SQLMetric) references[2] /* numOutputRows */).add(1);
+/* 068 */
+/* 069 */           columnartorow_mutableStateArray_3[1].reset();
+/* 070 */
+/* 071 */           columnartorow_mutableStateArray_3[1].write(0, columnartorow_value_0);
+/* 072 */
+/* 073 */           columnartorow_mutableStateArray_3[1].write(1, columnartorow_value_1);
+/* 074 */           append((columnartorow_mutableStateArray_3[1].getRow()));
+/* 075 */
+/* 076 */         } while(false);
+/* 077 */         if (shouldStop()) { columnartorow_batchIdx_0 = columnartorow_rowIdx_0 + 1; return; }
+/* 078 */       }
+/* 079 */       columnartorow_batchIdx_0 = columnartorow_numRows_0;
+/* 080 */       columnartorow_mutableStateArray_1[0].closeIfFreeable();
+/* 081 */       columnartorow_mutableStateArray_1[0] = null;
+/* 082 */       columnartorow_nextBatch_0();
+/* 083 */     }
+/* 084 */     // clean up resources
+/* 085 */     if (columnartorow_mutableStateArray_1[0] != null) {
+/* 086 */       columnartorow_mutableStateArray_1[0].close();
+/* 087 */     }
+/* 088 */   }
+/* 089 */
+/* 090 */ }
+
+== Subtree 2 / 5 (maxMethodCodeSize:154; maxConstantPoolSize:134(0.20% used); numInnerClasses:0) ==
+*(2) Sort [join_key#1949 ASC NULLS FIRST], false, 0
++- Exchange hashpartitioning(join_key#1949, 4), ENSURE_REQUIREMENTS, [plan_id=466]
+   +- *(1) Filter ((isnotnull(value#1950) AND (value#1950 > 50)) AND isnotnull(join_key#1949))
+      +- *(1) ColumnarToRow
+         +- FileScan parquet [join_key#1949,value#1950] Batched: true, DataFilters: [isnotnull(value#1950), (value#1950 > 50), isnotnull(join_key#1949)], Format: Parquet, Location: PreparedDeltaFileIndex(1 paths)[file:/path/to/learn_root/saved_delta_tables/join_table_a_small], PartitionFilters: [], PushedFilters: [IsNotNull(value), GreaterThan(value,50), IsNotNull(join_key)], ReadSchema: struct<join_key:string,value:int>
+
+Generated code:
+/* 001 */ public Object generate(Object[] references) {
+/* 002 */   return new GeneratedIteratorForCodegenStage2(references);
+/* 003 */ }
+/* 004 */
+/* 005 */ // codegenStageId=2
+/* 006 */ final class GeneratedIteratorForCodegenStage2 extends org.apache.spark.sql.execution.BufferedRowIterator {
+/* 007 */   private Object[] references;
+/* 008 */   private scala.collection.Iterator[] inputs;
+/* 009 */   private boolean sort_needToSort_0;
+/* 010 */   private org.apache.spark.sql.execution.UnsafeExternalRowSorter sort_sorter_0;
+/* 011 */   private org.apache.spark.executor.TaskMetrics sort_metrics_0;
+/* 012 */   private scala.collection.Iterator<UnsafeRow> sort_sortedIter_0;
+/* 013 */   private scala.collection.Iterator inputadapter_input_0;
+/* 014 */
+/* 015 */   public GeneratedIteratorForCodegenStage2(Object[] references) {
+/* 016 */     this.references = references;
+/* 017 */   }
+/* 018 */
+/* 019 */   public void init(int index, scala.collection.Iterator[] inputs) {
+/* 020 */     partitionIndex = index;
+/* 021 */     this.inputs = inputs;
+/* 022 */     sort_needToSort_0 = true;
+/* 023 */     sort_sorter_0 = ((org.apache.spark.sql.execution.SortExec) references[0] /* plan */).createSorter();
+/* 024 */     sort_metrics_0 = org.apache.spark.TaskContext.get().taskMetrics();
+/* 025 */
+/* 026 */     inputadapter_input_0 = inputs[0];
+/* 027 */
+/* 028 */   }
+/* 029 */
+/* 030 */   private void sort_addToSorter_0() throws java.io.IOException {
+/* 031 */     while ( inputadapter_input_0.hasNext()) {
+/* 032 */       InternalRow inputadapter_row_0 = (InternalRow) inputadapter_input_0.next();
+/* 033 */
+/* 034 */       sort_sorter_0.insertRow((UnsafeRow)inputadapter_row_0);
+/* 035 */       // shouldStop check is eliminated
+/* 036 */     }
+/* 037 */
+/* 038 */   }
+/* 039 */
+/* 040 */   protected void processNext() throws java.io.IOException {
+/* 041 */     if (sort_needToSort_0) {
+/* 042 */       long sort_spillSizeBefore_0 = sort_metrics_0.memoryBytesSpilled();
+/* 043 */       sort_addToSorter_0();
+/* 044 */       sort_sortedIter_0 = sort_sorter_0.sort();
+/* 045 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[3] /* sortTime */).add(sort_sorter_0.getSortTimeNanos() / 1000000);
+/* 046 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[1] /* peakMemory */).add(sort_sorter_0.getPeakMemoryUsage());
+/* 047 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[2] /* spillSize */).add(sort_metrics_0.memoryBytesSpilled() - sort_spillSizeBefore_0);
+/* 048 */       sort_metrics_0.incPeakExecutionMemory(sort_sorter_0.getPeakMemoryUsage());
+/* 049 */       sort_needToSort_0 = false;
+/* 050 */     }
+/* 051 */
+/* 052 */     while ( sort_sortedIter_0.hasNext()) {
+/* 053 */       UnsafeRow sort_outputRow_0 = (UnsafeRow)sort_sortedIter_0.next();
+/* 054 */
+/* 055 */       append(sort_outputRow_0);
+/* 056 */
+/* 057 */       if (shouldStop()) return;
+/* 058 */     }
+/* 059 */   }
+/* 060 */
+/* 061 */ }
+
+== Subtree 3 / 5 (maxMethodCodeSize:304; maxConstantPoolSize:157(0.24% used); numInnerClasses:0) ==
+*(3) Filter isnotnull(join_key#1955)
++- *(3) ColumnarToRow
+   +- FileScan parquet [join_key#1955,value#1956] Batched: true, DataFilters: [isnotnull(join_key#1955)], Format: Parquet, Location: PreparedDeltaFileIndex(1 paths)[file:/path/to/learn_root/saved_delta_tables/join_table_b_small], PartitionFilters: [], PushedFilters: [IsNotNull(join_key)], ReadSchema: struct<join_key:string,value:int>
+
+Generated code:
+/* 001 */ public Object generate(Object[] references) {
+/* 002 */   return new GeneratedIteratorForCodegenStage3(references);
+/* 003 */ }
+/* 004 */
+/* 005 */ // codegenStageId=3
+/* 006 */ final class GeneratedIteratorForCodegenStage3 extends org.apache.spark.sql.execution.BufferedRowIterator {
+/* 007 */   private Object[] references;
+/* 008 */   private scala.collection.Iterator[] inputs;
+/* 009 */   private int columnartorow_batchIdx_0;
+/* 010 */   private org.apache.spark.sql.execution.vectorized.OnHeapColumnVector[] columnartorow_mutableStateArray_2 = new org.apache.spark.sql.execution.vectorized.OnHeapColumnVector[2];
+/* 011 */   private org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter[] columnartorow_mutableStateArray_3 = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter[2];
+/* 012 */   private org.apache.spark.sql.vectorized.ColumnarBatch[] columnartorow_mutableStateArray_1 = new org.apache.spark.sql.vectorized.ColumnarBatch[1];
+/* 013 */   private scala.collection.Iterator[] columnartorow_mutableStateArray_0 = new scala.collection.Iterator[1];
+/* 014 */
+/* 015 */   public GeneratedIteratorForCodegenStage3(Object[] references) {
+/* 016 */     this.references = references;
+/* 017 */   }
+/* 018 */
+/* 019 */   public void init(int index, scala.collection.Iterator[] inputs) {
+/* 020 */     partitionIndex = index;
+/* 021 */     this.inputs = inputs;
+/* 022 */     columnartorow_mutableStateArray_0[0] = inputs[0];
+/* 023 */
+/* 024 */     columnartorow_mutableStateArray_3[0] = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter(2, 32);
+/* 025 */     columnartorow_mutableStateArray_3[1] = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter(2, 32);
+/* 026 */
+/* 027 */   }
+/* 028 */
+/* 029 */   private void columnartorow_nextBatch_0() throws java.io.IOException {
+/* 030 */     if (columnartorow_mutableStateArray_0[0].hasNext()) {
+/* 031 */       columnartorow_mutableStateArray_1[0] = (org.apache.spark.sql.vectorized.ColumnarBatch)columnartorow_mutableStateArray_0[0].next();
+/* 032 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[1] /* numInputBatches */).add(1);
+/* 033 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[0] /* numOutputRows */).add(columnartorow_mutableStateArray_1[0].numRows());
+/* 034 */       columnartorow_batchIdx_0 = 0;
+/* 035 */       columnartorow_mutableStateArray_2[0] = (org.apache.spark.sql.execution.vectorized.OnHeapColumnVector) columnartorow_mutableStateArray_1[0].column(0);
+/* 036 */       columnartorow_mutableStateArray_2[1] = (org.apache.spark.sql.execution.vectorized.OnHeapColumnVector) columnartorow_mutableStateArray_1[0].column(1);
+/* 037 */
+/* 038 */     }
+/* 039 */   }
+/* 040 */
+/* 041 */   protected void processNext() throws java.io.IOException {
+/* 042 */     if (columnartorow_mutableStateArray_1[0] == null) {
+/* 043 */       columnartorow_nextBatch_0();
+/* 044 */     }
+/* 045 */     while ( columnartorow_mutableStateArray_1[0] != null) {
+/* 046 */       int columnartorow_numRows_0 = columnartorow_mutableStateArray_1[0].numRows();
+/* 047 */       int columnartorow_localEnd_0 = columnartorow_numRows_0 - columnartorow_batchIdx_0;
+/* 048 */       for (int columnartorow_localIdx_0 = 0; columnartorow_localIdx_0 < columnartorow_localEnd_0; columnartorow_localIdx_0++) {
+/* 049 */         int columnartorow_rowIdx_0 = columnartorow_batchIdx_0 + columnartorow_localIdx_0;
+/* 050 */         do {
+/* 051 */           boolean columnartorow_isNull_0 = columnartorow_mutableStateArray_2[0].isNullAt(columnartorow_rowIdx_0);
+/* 052 */           UTF8String columnartorow_value_0 = columnartorow_isNull_0 ? null : (columnartorow_mutableStateArray_2[0].getUTF8String(columnartorow_rowIdx_0));
+/* 053 */
+/* 054 */           boolean filter_value_2 = !columnartorow_isNull_0;
+/* 055 */           if (!filter_value_2) continue;
+/* 056 */
+/* 057 */           ((org.apache.spark.sql.execution.metric.SQLMetric) references[2] /* numOutputRows */).add(1);
+/* 058 */
+/* 059 */           boolean columnartorow_isNull_1 = columnartorow_mutableStateArray_2[1].isNullAt(columnartorow_rowIdx_0);
+/* 060 */           int columnartorow_value_1 = columnartorow_isNull_1 ? -1 : (columnartorow_mutableStateArray_2[1].getInt(columnartorow_rowIdx_0));
+/* 061 */           columnartorow_mutableStateArray_3[1].reset();
+/* 062 */
+/* 063 */           columnartorow_mutableStateArray_3[1].zeroOutNullBytes();
+/* 064 */
+/* 065 */           columnartorow_mutableStateArray_3[1].write(0, columnartorow_value_0);
+/* 066 */
+/* 067 */           if (columnartorow_isNull_1) {
+/* 068 */             columnartorow_mutableStateArray_3[1].setNullAt(1);
+/* 069 */           } else {
+/* 070 */             columnartorow_mutableStateArray_3[1].write(1, columnartorow_value_1);
+/* 071 */           }
+/* 072 */           append((columnartorow_mutableStateArray_3[1].getRow()));
+/* 073 */
+/* 074 */         } while(false);
+/* 075 */         if (shouldStop()) { columnartorow_batchIdx_0 = columnartorow_rowIdx_0 + 1; return; }
+/* 076 */       }
+/* 077 */       columnartorow_batchIdx_0 = columnartorow_numRows_0;
+/* 078 */       columnartorow_mutableStateArray_1[0].closeIfFreeable();
+/* 079 */       columnartorow_mutableStateArray_1[0] = null;
+/* 080 */       columnartorow_nextBatch_0();
+/* 081 */     }
+/* 082 */     // clean up resources
+/* 083 */     if (columnartorow_mutableStateArray_1[0] != null) {
+/* 084 */       columnartorow_mutableStateArray_1[0].close();
+/* 085 */     }
+/* 086 */   }
+/* 087 */
+/* 088 */ }
+
+== Subtree 4 / 5 (maxMethodCodeSize:154; maxConstantPoolSize:134(0.20% used); numInnerClasses:0) ==
+*(4) Sort [join_key#1955 ASC NULLS FIRST], false, 0
++- Exchange hashpartitioning(join_key#1955, 4), ENSURE_REQUIREMENTS, [plan_id=475]
+   +- *(3) Filter isnotnull(join_key#1955)
+      +- *(3) ColumnarToRow
+         +- FileScan parquet [join_key#1955,value#1956] Batched: true, DataFilters: [isnotnull(join_key#1955)], Format: Parquet, Location: PreparedDeltaFileIndex(1 paths)[file:/path/to/learn_root/saved_delta_tables/join_table_b_small], PartitionFilters: [], PushedFilters: [IsNotNull(join_key)], ReadSchema: struct<join_key:string,value:int>
+
+Generated code:
+/* 001 */ public Object generate(Object[] references) {
+/* 002 */   return new GeneratedIteratorForCodegenStage4(references);
+/* 003 */ }
+/* 004 */
+/* 005 */ // codegenStageId=4
+/* 006 */ final class GeneratedIteratorForCodegenStage4 extends org.apache.spark.sql.execution.BufferedRowIterator {
+/* 007 */   private Object[] references;
+/* 008 */   private scala.collection.Iterator[] inputs;
+/* 009 */   private boolean sort_needToSort_0;
+/* 010 */   private org.apache.spark.sql.execution.UnsafeExternalRowSorter sort_sorter_0;
+/* 011 */   private org.apache.spark.executor.TaskMetrics sort_metrics_0;
+/* 012 */   private scala.collection.Iterator<UnsafeRow> sort_sortedIter_0;
+/* 013 */   private scala.collection.Iterator inputadapter_input_0;
+/* 014 */
+/* 015 */   public GeneratedIteratorForCodegenStage4(Object[] references) {
+/* 016 */     this.references = references;
+/* 017 */   }
+/* 018 */
+/* 019 */   public void init(int index, scala.collection.Iterator[] inputs) {
+/* 020 */     partitionIndex = index;
+/* 021 */     this.inputs = inputs;
+/* 022 */     sort_needToSort_0 = true;
+/* 023 */     sort_sorter_0 = ((org.apache.spark.sql.execution.SortExec) references[0] /* plan */).createSorter();
+/* 024 */     sort_metrics_0 = org.apache.spark.TaskContext.get().taskMetrics();
+/* 025 */
+/* 026 */     inputadapter_input_0 = inputs[0];
+/* 027 */
+/* 028 */   }
+/* 029 */
+/* 030 */   private void sort_addToSorter_0() throws java.io.IOException {
+/* 031 */     while ( inputadapter_input_0.hasNext()) {
+/* 032 */       InternalRow inputadapter_row_0 = (InternalRow) inputadapter_input_0.next();
+/* 033 */
+/* 034 */       sort_sorter_0.insertRow((UnsafeRow)inputadapter_row_0);
+/* 035 */       // shouldStop check is eliminated
+/* 036 */     }
+/* 037 */
+/* 038 */   }
+/* 039 */
+/* 040 */   protected void processNext() throws java.io.IOException {
+/* 041 */     if (sort_needToSort_0) {
+/* 042 */       long sort_spillSizeBefore_0 = sort_metrics_0.memoryBytesSpilled();
+/* 043 */       sort_addToSorter_0();
+/* 044 */       sort_sortedIter_0 = sort_sorter_0.sort();
+/* 045 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[3] /* sortTime */).add(sort_sorter_0.getSortTimeNanos() / 1000000);
+/* 046 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[1] /* peakMemory */).add(sort_sorter_0.getPeakMemoryUsage());
+/* 047 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[2] /* spillSize */).add(sort_metrics_0.memoryBytesSpilled() - sort_spillSizeBefore_0);
+/* 048 */       sort_metrics_0.incPeakExecutionMemory(sort_sorter_0.getPeakMemoryUsage());
+/* 049 */       sort_needToSort_0 = false;
+/* 050 */     }
+/* 051 */
+/* 052 */     while ( sort_sortedIter_0.hasNext()) {
+/* 053 */       UnsafeRow sort_outputRow_0 = (UnsafeRow)sort_sortedIter_0.next();
+/* 054 */
+/* 055 */       append(sort_outputRow_0);
+/* 056 */
+/* 057 */       if (shouldStop()) return;
+/* 058 */     }
+/* 059 */   }
+/* 060 */
+/* 061 */ }
+
+== Subtree 5 / 5 (maxMethodCodeSize:271; maxConstantPoolSize:201(0.31% used); numInnerClasses:1) ==
+*(5) Project [join_key#1949, value#1950 AS value_a#1975, value#1956 AS value_b#1976]
++- *(5) SortMergeJoin [join_key#1949], [join_key#1955], Inner
+   :- *(2) Sort [join_key#1949 ASC NULLS FIRST], false, 0
+   :  +- Exchange hashpartitioning(join_key#1949, 4), ENSURE_REQUIREMENTS, [plan_id=466]
+   :     +- *(1) Filter ((isnotnull(value#1950) AND (value#1950 > 50)) AND isnotnull(join_key#1949))
+   :        +- *(1) ColumnarToRow
+   :           +- FileScan parquet [join_key#1949,value#1950] Batched: true, DataFilters: [isnotnull(value#1950), (value#1950 > 50), isnotnull(join_key#1949)], Format: Parquet, Location: PreparedDeltaFileIndex(1 paths)[file:/path/to/learn_root/saved_delta_tables/join_table_a_small], PartitionFilters: [], PushedFilters: [IsNotNull(value), GreaterThan(value,50), IsNotNull(join_key)], ReadSchema: struct<join_key:string,value:int>
+   +- *(4) Sort [join_key#1955 ASC NULLS FIRST], false, 0
+      +- Exchange hashpartitioning(join_key#1955, 4), ENSURE_REQUIREMENTS, [plan_id=475]
+         +- *(3) Filter isnotnull(join_key#1955)
+            +- *(3) ColumnarToRow
+               +- FileScan parquet [join_key#1955,value#1956] Batched: true, DataFilters: [isnotnull(join_key#1955)], Format: Parquet, Location: PreparedDeltaFileIndex(1 paths)[file:/path/to/learn_root/saved_delta_tables/join_table_b_small], PartitionFilters: [], PushedFilters: [IsNotNull(join_key)], ReadSchema: struct<join_key:string,value:int>
+
+Generated code:
+/* 001 */ public Object generate(Object[] references) {
+/* 002 */   return new GeneratedIteratorForCodegenStage5(references);
+/* 003 */ }
+/* 004 */
+/* 005 */ // codegenStageId=5
+/* 006 */ final class GeneratedIteratorForCodegenStage5 extends org.apache.spark.sql.execution.BufferedRowIterator {
+/* 007 */   private Object[] references;
+/* 008 */   private scala.collection.Iterator[] inputs;
+/* 009 */   private scala.collection.Iterator smj_streamedInput_0;
+/* 010 */   private scala.collection.Iterator smj_bufferedInput_0;
+/* 011 */   private InternalRow smj_streamedRow_0;
+/* 012 */   private InternalRow smj_bufferedRow_0;
+/* 013 */   private org.apache.spark.sql.execution.ExternalAppendOnlyUnsafeRowArray smj_matches_0;
+/* 014 */   private boolean wholestagecodegen_initJoin_0;
+/* 015 */   private org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter[] smj_mutableStateArray_1 = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter[2];
+/* 016 */   private UTF8String[] smj_mutableStateArray_0 = new UTF8String[2];
+/* 017 */
+/* 018 */   public GeneratedIteratorForCodegenStage5(Object[] references) {
+/* 019 */     this.references = references;
+/* 020 */   }
+/* 021 */
+/* 022 */   public void init(int index, scala.collection.Iterator[] inputs) {
+/* 023 */     partitionIndex = index;
+/* 024 */     this.inputs = inputs;
+/* 025 */     smj_streamedInput_0 = inputs[0];
+/* 026 */     smj_bufferedInput_0 = inputs[1];
+/* 027 */
+/* 028 */     smj_matches_0 = new org.apache.spark.sql.execution.ExternalAppendOnlyUnsafeRowArray(2147483632, 2147483647);
+/* 029 */     smj_mutableStateArray_1[0] = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter(4, 64);
+/* 030 */     smj_mutableStateArray_1[1] = new org.apache.spark.sql.catalyst.expressions.codegen.UnsafeRowWriter(3, 32);
+/* 031 */
+/* 032 */   }
+/* 033 */
+/* 034 */   private boolean smj_findNextJoinRows_0(
+/* 035 */     scala.collection.Iterator streamedIter,
+/* 036 */     scala.collection.Iterator bufferedIter) {
+/* 037 */     smj_streamedRow_0 = null;
+/* 038 */     int comp = 0;
+/* 039 */     while (smj_streamedRow_0 == null) {
+/* 040 */       if (!streamedIter.hasNext()) return false;
+/* 041 */       smj_streamedRow_0 = (InternalRow) streamedIter.next();
+/* 042 */       UTF8String smj_value_0 = smj_streamedRow_0.getUTF8String(0);
+/* 043 */       if (false) {
+/* 044 */         smj_streamedRow_0 = null;
+/* 045 */         continue;
+/* 046 */
+/* 047 */       }
+/* 048 */       if (!smj_matches_0.isEmpty()) {
+/* 049 */         comp = 0;
+/* 050 */         if (comp == 0) {
+/* 051 */           comp = smj_value_0.compare(smj_mutableStateArray_0[1]);
+/* 052 */         }
+/* 053 */
+/* 054 */         if (comp == 0) {
+/* 055 */           return true;
+/* 056 */         }
+/* 057 */         smj_matches_0.clear();
+/* 058 */       }
+/* 059 */
+/* 060 */       do {
+/* 061 */         if (smj_bufferedRow_0 == null) {
+/* 062 */           if (!bufferedIter.hasNext()) {
+/* 063 */             smj_mutableStateArray_0[1] = smj_value_0.clone();
+/* 064 */             return !smj_matches_0.isEmpty();
+/* 065 */           }
+/* 066 */           smj_bufferedRow_0 = (InternalRow) bufferedIter.next();
+/* 067 */           UTF8String smj_value_1 = smj_bufferedRow_0.getUTF8String(0);
+/* 068 */           if (false) {
+/* 069 */             smj_bufferedRow_0 = null;
+/* 070 */             continue;
+/* 071 */           }
+/* 072 */           smj_mutableStateArray_0[0] = smj_value_1.clone();
+/* 073 */         }
+/* 074 */
+/* 075 */         comp = 0;
+/* 076 */         if (comp == 0) {
+/* 077 */           comp = smj_value_0.compare(smj_mutableStateArray_0[0]);
+/* 078 */         }
+/* 079 */
+/* 080 */         if (comp > 0) {
+/* 081 */           smj_bufferedRow_0 = null;
+/* 082 */         } else if (comp < 0) {
+/* 083 */           if (!smj_matches_0.isEmpty()) {
+/* 084 */             smj_mutableStateArray_0[1] = smj_value_0.clone();
+/* 085 */             return true;
+/* 086 */           } else {
+/* 087 */             smj_streamedRow_0 = null;
+/* 088 */           }
+/* 089 */         } else {
+/* 090 */           smj_matches_0.add((UnsafeRow) smj_bufferedRow_0);
+/* 091 */           smj_bufferedRow_0 = null;
+/* 092 */         }
+/* 093 */       } while (smj_streamedRow_0 != null);
+/* 094 */     }
+/* 095 */     return false; // unreachable
+/* 096 */   }
+/* 097 */
+/* 098 */   protected void processNext() throws java.io.IOException {
+/* 099 */     if (!wholestagecodegen_initJoin_0) {
+/* 100 */       wholestagecodegen_initJoin_0 = true;
+/* 101 */
+/* 102 */       ((org.apache.spark.sql.execution.joins.SortMergeJoinExec) references[1] /* plan */).getTaskContext().addTaskCompletionListener(
+/* 103 */         new org.apache.spark.util.TaskCompletionListener() {
+/* 104 */           @Override
+/* 105 */           public void onTaskCompletion(org.apache.spark.TaskContext context) {
+/* 106 */             ((org.apache.spark.sql.execution.metric.SQLMetric) references[2] /* spillSize */).add(smj_matches_0.spillSize());
+/* 107 */           }
+/* 108 */         });
+/* 109 */
+/* 110 */     }
+/* 111 */
+/* 112 */     while (smj_findNextJoinRows_0(smj_streamedInput_0, smj_bufferedInput_0)) {
+/* 113 */       UTF8String smj_value_2 = null;
+/* 114 */       int smj_value_3 = -1;
+/* 115 */       smj_value_2 = smj_streamedRow_0.getUTF8String(0);
+/* 116 */       smj_value_3 = smj_streamedRow_0.getInt(1);
+/* 117 */       scala.collection.Iterator<UnsafeRow> smj_iterator_0 = smj_matches_0.generateIterator();
+/* 118 */
+/* 119 */       while (smj_iterator_0.hasNext()) {
+/* 120 */         InternalRow smj_bufferedRow_1 = (InternalRow) smj_iterator_0.next();
+/* 121 */
+/* 122 */         ((org.apache.spark.sql.execution.metric.SQLMetric) references[0] /* numOutputRows */).add(1);
+/* 123 */
+/* 124 */         // common sub-expressions
+/* 125 */
+/* 126 */         boolean smj_isNull_3 = smj_bufferedRow_1.isNullAt(1);
+/* 127 */         int smj_value_5 = smj_isNull_3 ?
+/* 128 */         -1 : (smj_bufferedRow_1.getInt(1));
+/* 129 */         smj_mutableStateArray_1[1].reset();
+/* 130 */
+/* 131 */         smj_mutableStateArray_1[1].zeroOutNullBytes();
+/* 132 */
+/* 133 */         if (false) {
+/* 134 */           smj_mutableStateArray_1[1].setNullAt(0);
+/* 135 */         } else {
+/* 136 */           smj_mutableStateArray_1[1].write(0, smj_value_2);
+/* 137 */         }
+/* 138 */
+/* 139 */         if (false) {
+/* 140 */           smj_mutableStateArray_1[1].setNullAt(1);
+/* 141 */         } else {
+/* 142 */           smj_mutableStateArray_1[1].write(1, smj_value_3);
+/* 143 */         }
+/* 144 */
+/* 145 */         if (smj_isNull_3) {
+/* 146 */           smj_mutableStateArray_1[1].setNullAt(2);
+/* 147 */         } else {
+/* 148 */           smj_mutableStateArray_1[1].write(2, smj_value_5);
+/* 149 */         }
+/* 150 */         append((smj_mutableStateArray_1[1].getRow()).copy());
+/* 151 */
+/* 152 */       }
+/* 153 */       if (shouldStop()) return;
+/* 154 */     }
+/* 155 */     ((org.apache.spark.sql.execution.joins.SortMergeJoinExec) references[1] /* plan */).cleanupResources();
+/* 156 */   }
+/* 157 */
+/* 158 */ }
+

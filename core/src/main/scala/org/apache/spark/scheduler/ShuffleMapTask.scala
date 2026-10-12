@@ -101,6 +101,7 @@ private[spark] class ShuffleMapTask(
     val mapId = if (SparkEnv.get.conf.get(config.SHUFFLE_USE_OLD_FETCH_PROTOCOL)) {
       partitionId
     } else context.taskAttemptId()
+    System.err.println(s"=== AKHIL [Shuffle Map Task]")
     dep.shuffleWriterProcessor.write(rdd, dep, mapId, context, partition)
   }
 

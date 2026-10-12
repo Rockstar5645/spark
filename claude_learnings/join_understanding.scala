@@ -29,8 +29,8 @@
 import org.apache.spark.sql.functions._
 
 val basePath = "/path/to/learn_root/saved_delta_tables"
-val tableA = s"$basePath/join_table_a"
-val tableB = s"$basePath/join_table_b"
+val tableA = s"$basePath/join_table_a_small"
+val tableB = s"$basePath/join_table_b_small"
 
 // ---------------------------------------------------------------------------
 // SIZING — tune N and payloadRepeat to hit your target table size.
@@ -40,7 +40,7 @@ val tableB = s"$basePath/join_table_b"
 //                             compresses in parquet — realistic vs your ATE data).
 //   Start smaller (N = 5,000,000, ~1.5 GB) to see spill fast, then scale up.
 // ---------------------------------------------------------------------------
-val N: Long = 120000000L        // rows per table
+val N: Long = 40000000L          // rows per table (small: fast, map-side focus)
 val payloadRepeat = 64         // bump to inflate row width
 val overlap: Long = N / 2      // how many keys the two tables share -> match count
 
@@ -62,7 +62,18 @@ spark.conf.set("spark.sql.adaptive.enabled", "false")
 //     memory = spill to disk. With 4g driver and 8 partitions over ~12GB, the
 //     sort-merge join's external sorter WILL spill. Crank to 4 for heavier spill,
 //     raise to 200 to (mostly) avoid it and see the contrast.
-spark.conf.set("spark.sql.shuffle.partitions", "24")
+spark.conf.set("spark.sql.shuffle.partitions", "4")
+
+// (4) Don't truncate the plan string. Default caps field lists at 25 ("... N more
+//     fields") and triggers the "Truncated the string representation" WARN — which
+//     would leave execution_plan.txt incomplete. Raise it so the dump is full.
+spark.conf.set("spark.sql.debug.maxToStringFields", "5000")
+
+// (5) Don't abbreviate long metadata VALUES — specifically the FileScan `Location:`
+//     path, which default-caps at 100 chars via StringUtils.abbreviate (the "..." that
+//     hides WHICH table is being scanned). DIFFERENT knob from maxToStringFields above:
+//     that caps the column-LIST length; this caps each individual field VALUE's length.
+spark.conf.set("spark.sql.maxMetadataStringLength", "10000")
 
 // ---------------------------------------------------------------------------
 // BUILD THE TWO TABLES
@@ -86,16 +97,16 @@ def makeTable(startId: Long, count: Long) = {
 // in the Spark UI "Jobs" tab, so each phase below gets a readable label instead
 // of the default "save at ..." / "count at ..." callsite string.
 
-// println(s"\n=== writing table A: $N rows -> $tableA ===")
-// sc.setJobGroup("write-A", s"Write table A ($N rows) to Delta")
-// makeTable(0L, N)
-//   .write.format("delta").mode("overwrite").save(tableA)
+println(s"\n\n\n\n=== writing table A: $N rows -> $tableA ===")
+sc.setJobGroup("write-A", s"Write table A ($N rows) to Delta")
+makeTable(0L, N)
+  .write.format("delta").mode("overwrite").save(tableA)
 
-// println(s"\n=== writing table B: $N rows (overlap=$overlap) -> $tableB ===")
-// // B starts at N-overlap so ids [N-overlap, N) are shared with A.
-// sc.setJobGroup("write-B", s"Write table B ($N rows, overlap=$overlap) to Delta")
-// makeTable(N - overlap, N)
-//   .write.format("delta").mode("overwrite").save(tableB)
+println(s"\n=== writing table B: $N rows (overlap=$overlap) -> $tableB ===")
+// B starts at N-overlap so ids [N-overlap, N) are shared with A.
+sc.setJobGroup("write-B", s"Write table B ($N rows, overlap=$overlap) to Delta")
+makeTable(N - overlap, N)
+  .write.format("delta").mode("overwrite").save(tableB)
 
 // ---------------------------------------------------------------------------
 // THE JOIN + FILTER
@@ -116,16 +127,43 @@ val joined = a.join(b, a("join_key") === b("join_key"))
 //         -> SortMergeJoin [join_key]              <- merge the two sorted streams
 // Each Exchange is where SortShuffleWriter runs on the map side and
 // BlockStoreShuffleReader fetches on the reduce side.
-println("\n=== PHYSICAL PLAN (read bottom-up) ===")
+// Small helper: write a string to a file (overwrites) so we can inspect the plan
+// and generated code at leisure instead of scrolling the console.
+def dumpToFile(path: String, contents: String): Unit = {
+  val pw = new java.io.PrintWriter(new java.io.File(path))
+  try pw.write(contents) finally pw.close()
+  println(s"    (written to $path)")
+}
+
+val outDir = "/path/to/learn_root/spark/claude_learnings"
+
+// PHYSICAL PLAN — explainString(ExtendedMode) returns the SAME text explain(true)
+// prints (parsed / analyzed / optimized logical + physical plan), but as a String
+// we can both print and save.
+println("\n\n\n\n\n\n=== PHYSICAL PLAN (read bottom-up) -> execution_plan.txt ===")
 sc.setJobGroup("explain", "explain(true) — build & print physical plan (no data jobs)")
-joined.explain(true)
+val planText = joined.queryExecution.explainString(
+  org.apache.spark.sql.execution.ExplainMode.fromString("extended"))
+// println(planText)
+dumpToFile(s"$outDir/execution_plan.txt", planText)
+
+// GENERATED CODE — the whole-stage-codegen Java that actually runs on the map side.
+// The `records` iterator that SortShuffleWriter.insertAll consumes ([10a]) IS the
+// processNext() loop in one of these generated classes. Look for the subtree doing
+// FileScan parquet + Filter(value > 50): its processNext() reads a row, applies the
+// filter, and hands it to the shuffle writer. That's the map-side hot path in source.
+// codegenString(plan) returns what debug.codegen() prints, but as a String to save.
+println("\n\n\n\n\n\n\n=== GENERATED CODE (whole-stage codegen) -> codegen.txt ===")
+val codegenText = org.apache.spark.sql.execution.debug.codegenString(joined.queryExecution.executedPlan)
+// println(codegenText)
+dumpToFile(s"$outDir/codegen.txt", codegenText)
 
 // An ACTION to actually execute it. count() forces the whole shuffle+join+spill.
-println("\n=== executing join (watch AKHIL [10a]/[10b] write, [11] read traces) ===")
+println("\n\n\n\n\n\n\n=== executing join (watch AKHIL [10a]/[10b] write, [11] read traces) ===")
 sc.setJobGroup("join-count", s"SortMergeJoin A><B + filter, count() (shuffle.partitions=${spark.conf.get("spark.sql.shuffle.partitions")})")
 val matched = joined.count()
 sc.clearJobGroup()  // stop tagging subsequent jobs with the join group
-println(s"\n=== matched rows after filter: $matched ===")
+println(s"\n\n\n\n\n\n\n=== matched rows after filter: $matched ===")
 
 // ---------------------------------------------------------------------------
 // WHAT TO LOOK AT while / after this runs:

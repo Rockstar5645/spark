@@ -60,8 +60,15 @@ private[spark] class SortShuffleWriter[K, V, C](
       new ExternalSorter[K, V, V](
         context, aggregator = None, Some(dep.partitioner), ordering = None, dep.serializer)
     }
-    logError("=== AKHIL [10a] SortShuffleWriter.write: shuffleId=" + dep.shuffleId + " mapId=" + mapId + " numReducePartitions=" + dep.partitioner.numPartitions + " mapSideCombine=" + dep.mapSideCombine + " ===")
+    // Only trace ONE map task (partitionId==1) so a local[4] run doesn't interleave
+    // 4 tasks' output. Flip the guard or set to another id to watch a different task.
+    if (context.partitionId() == 1) {
+      logError("=== AKHIL [10a] SortShuffleWriter.write START: shuffleId=" + dep.shuffleId + " mapId=" + mapId + " partitionId=" + context.partitionId() + " numReducePartitions=" + dep.partitioner.numPartitions + " mapSideCombine=" + dep.mapSideCombine + " ===")
+    }
     sorter.insertAll(records)
+    if (context.partitionId() == 1) {
+      logError("=== AKHIL [10b] SortShuffleWriter.write DONE inserting for partitionId=" + context.partitionId() + " (all input rows bucketed/spilled) ===")
+    }
 
     // Don't bother including the time to open the merged output file in the shuffle write time,
     // because it just opens a single file, so is typically too fast to measure accurately

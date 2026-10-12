@@ -70,7 +70,10 @@ private[spark] class BlockStoreShuffleReader[K, C](
 
   /** Read the combined key-values for this reduce task */
   override def read(): Iterator[Product2[K, C]] = {
-    // logError("=== AKHIL [11] BlockStoreShuffleReader.read: shuffleId=" + dep.shuffleId + " taskContext.partitionId=" + context.partitionId() + " ===")
+    // Match the map-side guard: only trace reduce partition 1 so output isn't interleaved.
+    if (context.partitionId() == 1) {
+      logError("=== AKHIL [11] BlockStoreShuffleReader.read: shuffleId=" + dep.shuffleId + " reduce partitionId=" + context.partitionId() + " (fetching this partition's blocks from ALL map outputs) ===")
+    }
     val wrappedStreams = new ShuffleBlockFetcherIterator(
       context,
       blockManager.blockStoreClient,

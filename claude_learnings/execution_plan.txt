@@ -1,0 +1,42 @@
+== Parsed Logical Plan ==
+'Project ['a.join_key, 'a.value AS value_a#1975, 'b.value AS value_b#1976]
++- Filter (value#1950 > 50)
+   +- Join Inner, (join_key#1949 = join_key#1955)
+      :- SubqueryAlias a
+      :  +- Relation [join_key#1949,value#1950,payload#1951] parquet
+      +- SubqueryAlias b
+         +- Relation [join_key#1955,value#1956,payload#1957] parquet
+
+== Analyzed Logical Plan ==
+join_key: string, value_a: int, value_b: int
+Project [join_key#1949, value#1950 AS value_a#1975, value#1956 AS value_b#1976]
++- Filter (value#1950 > 50)
+   +- Join Inner, (join_key#1949 = join_key#1955)
+      :- SubqueryAlias a
+      :  +- Relation [join_key#1949,value#1950,payload#1951] parquet
+      +- SubqueryAlias b
+         +- Relation [join_key#1955,value#1956,payload#1957] parquet
+
+== Optimized Logical Plan ==
+Project [join_key#1949, value#1950 AS value_a#1975, value#1956 AS value_b#1976]
++- Join Inner, (join_key#1949 = join_key#1955)
+   :- Project [join_key#1949, value#1950]
+   :  +- Filter ((isnotnull(value#1950) AND (value#1950 > 50)) AND isnotnull(join_key#1949))
+   :     +- Relation [join_key#1949,value#1950,payload#1951] parquet
+   +- Project [join_key#1955, value#1956]
+      +- Filter isnotnull(join_key#1955)
+         +- Relation [join_key#1955,value#1956,payload#1957] parquet
+
+== Physical Plan ==
+*(5) Project [join_key#1949, value#1950 AS value_a#1975, value#1956 AS value_b#1976]
++- *(5) SortMergeJoin [join_key#1949], [join_key#1955], Inner
+   :- *(2) Sort [join_key#1949 ASC NULLS FIRST], false, 0
+   :  +- Exchange hashpartitioning(join_key#1949, 4), ENSURE_REQUIREMENTS, [plan_id=466]
+   :     +- *(1) Filter ((isnotnull(value#1950) AND (value#1950 > 50)) AND isnotnull(join_key#1949))
+   :        +- *(1) ColumnarToRow
+   :           +- FileScan parquet [join_key#1949,value#1950] Batched: true, DataFilters: [isnotnull(value#1950), (value#1950 > 50), isnotnull(join_key#1949)], Format: Parquet, Location: PreparedDeltaFileIndex(1 paths)[file:/path/to/learn_root/saved_delta_tables/join_table_a_small], PartitionFilters: [], PushedFilters: [IsNotNull(value), GreaterThan(value,50), IsNotNull(join_key)], ReadSchema: struct<join_key:string,value:int>
+   +- *(4) Sort [join_key#1955 ASC NULLS FIRST], false, 0
+      +- Exchange hashpartitioning(join_key#1955, 4), ENSURE_REQUIREMENTS, [plan_id=475]
+         +- *(3) Filter isnotnull(join_key#1955)
+            +- *(3) ColumnarToRow
+               +- FileScan parquet [join_key#1955,value#1956] Batched: true, DataFilters: [isnotnull(join_key#1955)], Format: Parquet, Location: PreparedDeltaFileIndex(1 paths)[file:/path/to/learn_root/saved_delta_tables/join_table_b_small], PartitionFilters: [], PushedFilters: [IsNotNull(join_key)], ReadSchema: struct<join_key:string,value:int>

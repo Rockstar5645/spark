@@ -1,0 +1,94 @@
+== Physical Plan ==
+* HashAggregate (16)
++- Exchange (15)
+   +- * HashAggregate (14)
+      +- * Project (13)
+         +- * SortMergeJoin Inner (12)
+            :- * Sort (6)
+            :  +- Exchange (5)
+            :     +- * Project (4)
+            :        +- * Filter (3)
+            :           +- * ColumnarToRow (2)
+            :              +- Scan parquet  (1)
+            +- * Sort (11)
+               +- Exchange (10)
+                  +- * Filter (9)
+                     +- * ColumnarToRow (8)
+                        +- Scan parquet  (7)
+
+
+(1) Scan parquet 
+Output [2]: [join_key#0, value#1]
+Batched: true
+Location: PreparedDeltaFileIndex [file:/path/to/learn_root/saved_delta_tables/join_table_a_small]
+PushedFilters: [IsNotNull(value), GreaterThan(value,50), IsNotNull(join_key)]
+ReadSchema: struct<join_key:string,value:int>
+
+(2) ColumnarToRow [codegen id : 1]
+Input [2]: [join_key#0, value#1]
+
+(3) Filter [codegen id : 1]
+Input [2]: [join_key#0, value#1]
+Condition : ((isnotnull(value#1) AND (value#1 > 50)) AND isnotnull(join_key#0))
+
+(4) Project [codegen id : 1]
+Output [1]: [join_key#0]
+Input [2]: [join_key#0, value#1]
+
+(5) Exchange
+Input [1]: [join_key#0]
+Arguments: hashpartitioning(join_key#0, 4), ENSURE_REQUIREMENTS, [plan_id=347]
+
+(6) Sort [codegen id : 2]
+Input [1]: [join_key#0]
+Arguments: [join_key#0 ASC NULLS FIRST], false, 0
+
+(7) Scan parquet 
+Output [1]: [join_key#6]
+Batched: true
+Location: PreparedDeltaFileIndex [file:/path/to/learn_root/saved_delta_tables/join_table_b_small]
+PushedFilters: [IsNotNull(join_key)]
+ReadSchema: struct<join_key:string>
+
+(8) ColumnarToRow [codegen id : 3]
+Input [1]: [join_key#6]
+
+(9) Filter [codegen id : 3]
+Input [1]: [join_key#6]
+Condition : isnotnull(join_key#6)
+
+(10) Exchange
+Input [1]: [join_key#6]
+Arguments: hashpartitioning(join_key#6, 4), ENSURE_REQUIREMENTS, [plan_id=356]
+
+(11) Sort [codegen id : 4]
+Input [1]: [join_key#6]
+Arguments: [join_key#6 ASC NULLS FIRST], false, 0
+
+(12) SortMergeJoin [codegen id : 5]
+Left keys [1]: [join_key#0]
+Right keys [1]: [join_key#6]
+Join type: Inner
+Join condition: None
+
+(13) Project [codegen id : 5]
+Output: []
+Input [2]: [join_key#0, join_key#6]
+
+(14) HashAggregate [codegen id : 5]
+Input: []
+Keys: []
+Functions [1]: [partial_count(1)]
+Aggregate Attributes [1]: [count#954L]
+Results [1]: [count#955L]
+
+(15) Exchange
+Input [1]: [count#955L]
+Arguments: SinglePartition, ENSURE_REQUIREMENTS, [plan_id=365]
+
+(16) HashAggregate [codegen id : 6]
+Input [1]: [count#955L]
+Keys: []
+Functions [1]: [count(1)]
+Aggregate Attributes [1]: [count(1)#797L]
+Results [1]: [count(1)#797L AS count#798L]

@@ -109,6 +109,16 @@
       <artifactId>scopt_${scala.binary.version}</artifactId>
       <version>3.7.1</version>
     </dependency>
+    <!-- akhil-learnings: Delta on the examples build target, so the Metals debugger maps Delta
+         classes to source and breakpoints bind. 3.3.2-akhil = the local delta checkout, published
+         with publishM2 (see experiments/report/README.md). provided = not packaged; at runtime the
+         same jar comes in through spark.jars. -->
+    <dependency>
+      <groupId>io.delta</groupId>
+      <artifactId>delta-spark_${scala.binary.version}</artifactId>
+      <version>3.3.2-akhil</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>

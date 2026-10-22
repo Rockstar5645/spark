@@ -34,6 +34,10 @@ object ReportWalkthrough {
     sys.error("set REPORT_TABLES_ROOT to the dir holding the sales/ and telemetry/ tables"))
 
   def main(args: Array[String]): Unit = {
+    println("this is the first step")
+    println("and this is the second step")
+    println("and this is the third step")
+
     val spark = SparkSession.builder.appName("ReportWalkthrough").getOrCreate()
 
     // STEP 1 -- open the tables. NOT an action: reads only the Delta log + schema, no rows.

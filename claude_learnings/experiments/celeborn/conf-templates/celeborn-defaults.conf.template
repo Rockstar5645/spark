@@ -1,0 +1,21 @@
+# Copy (after envsubst) to $CELEBORN_SRC/dist/conf/celeborn-defaults.conf. dist/ is gitignored.
+# Single-node learning cluster: 1 master + 1 worker. Ports 61000-61199.
+# The RPC port must bind the same IP the HTTP side and clients use, or Spark can't connect
+# (seen 2026-10-12: master.host=localhost bound RPC to 127.0.0.1 while HTTP was on the LAN IP).
+# NOTE: the HTTP API is unauthenticated; with a LAN_IP it is visible to the whole network.
+celeborn.master.endpoints ${LAN_IP}:61097
+celeborn.master.host ${LAN_IP}
+celeborn.master.port 61097
+celeborn.master.http.host ${LAN_IP}
+celeborn.master.http.port 61098
+
+celeborn.worker.http.host ${LAN_IP}
+celeborn.worker.http.port 61096
+celeborn.worker.rpc.port 61091
+celeborn.worker.push.port 61092
+celeborn.worker.fetch.port 61093
+celeborn.worker.replicate.port 61094
+
+celeborn.worker.storage.dirs ${EXTERN_ROOT}/celeborn_data/worker1
+celeborn.worker.monitor.disk.enabled false
+celeborn.metrics.enabled true

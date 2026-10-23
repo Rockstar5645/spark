@@ -1,0 +1,9 @@
+{
+  // Put these in USER settings (or "Preferences: Open Remote Settings (JSON)" over SSH).
+  // They were IGNORED when placed in the workspace settings.json (seen 2026-10-22: Metals
+  // still ran with the default -Xmx2G).
+  //   -Xmx16g: Metals OOM'd at 2G on Spark.
+  //   debug-server-start-timeout=600: the default 60 s times out the pre-attach compile.
+  "metals.serverProperties": ["-Xmx16g", "-Xss4m", "-Dmetals.debug-server-start-timeout=600"],
+  "metals.bloopJvmProperties": ["-Xmx12g", "-Xss4m"]
+}

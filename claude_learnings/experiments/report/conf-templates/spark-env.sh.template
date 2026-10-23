@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Rendered by render_conf.sh (envsubst). Local standalone learning cluster, deliberately SMALL
+# so shuffle pressure shows: one worker with 4 cores / 8g, carved into 2g executors.
+# NOTE: no SPARK_PREPEND_CLASSES here (see debug_run.sh for why).
+export JAVA_HOME=${JAVA_HOME}
+export SPARK_LOCAL_IP=${LAN_IP}
+export SPARK_MASTER_HOST=${LAN_IP}
+export SPARK_MASTER_PORT=61077
+export SPARK_MASTER_WEBUI_PORT=61080
+export SPARK_WORKER_PORT=61078
+export SPARK_WORKER_WEBUI_PORT=61081
+export SPARK_WORKER_CORES=4
+export SPARK_WORKER_MEMORY=8g
+export SPARK_WORKER_DIR=${EXTERN_ROOT}/spark_work
+export SPARK_LOCAL_DIRS=${EXTERN_ROOT}/spark_tmp
+export SPARK_LOG_DIR=${EXTERN_ROOT}/spark_logs
+export SPARK_PID_DIR=${EXTERN_ROOT}/spark_logs
+export SPARK_HISTORY_OPTS="-Dspark.history.ui.port=61082 -Dspark.history.fs.logDirectory=file:${EXTERN_ROOT}/spark_events"

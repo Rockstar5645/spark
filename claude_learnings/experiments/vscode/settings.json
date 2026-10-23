@@ -1,0 +1,6 @@
+{
+  // Workspace settings: copy to <EXTERN_ROOT>/.vscode/settings.json.
+  "files.watcherExclude": { "**/target/**": true },
+  "metals.customProjectRoot": "spark",
+  "java.compile.nullAnalysis.mode": "disabled"
+}

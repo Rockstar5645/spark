@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Copy (after envsubst) to $CELEBORN_SRC/dist/conf/celeborn-env.sh. dist/ is gitignored.
+export JAVA_HOME=${JAVA_HOME}
+export CELEBORN_LOCAL_IP=${LAN_IP}
+CELEBORN_MASTER_MEMORY=2g
+CELEBORN_WORKER_MEMORY=2g
+CELEBORN_WORKER_OFFHEAP_MEMORY=4g
+CELEBORN_LOG_DIR=${EXTERN_ROOT}/celeborn_data/logs
+CELEBORN_PID_DIR=${EXTERN_ROOT}/celeborn_data/pids

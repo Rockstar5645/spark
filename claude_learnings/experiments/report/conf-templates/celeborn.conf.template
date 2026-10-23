@@ -1,0 +1,30 @@
+# Rendered by render_conf.sh (envsubst). Same as spark-defaults.conf, plus Celeborn.
+# Use: spark-shell --properties-file "$SPARK_CONF_DIR"/celeborn.conf
+# (--properties-file REPLACES spark-defaults.conf, so everything is repeated here.)
+spark.master                        spark://${LAN_IP}:61077
+spark.executor.cores                2
+spark.executor.memory               2g
+spark.driver.memory                 2g
+spark.cores.max                     4
+spark.ui.port                       61040
+spark.driver.port                   61041
+spark.blockManager.port             61042
+spark.port.maxRetries               16
+
+spark.eventLog.enabled              true
+spark.eventLog.dir                  file:${EXTERN_ROOT}/spark_events
+
+spark.sql.extensions                io.delta.sql.DeltaSparkSessionExtension
+spark.sql.catalog.spark_catalog     org.apache.spark.sql.delta.catalog.DeltaCatalog
+spark.jars                          ${DELTA_SPARK_JAR},${DELTA_STORAGE_JAR},${EXTERN_ROOT}/celeborn/dist/spark/celeborn-client-spark-3-shaded_2.12-0.7.0.jar
+
+# The executor creates its ShuffleManager at JVM start, BEFORE spark.jars are fetched, so the
+# client jar must be on the executor's boot classpath too. Without this: ClassNotFoundException
+# SparkShuffleManager in every executor, endless relaunch (seen 2026-10-12, 640+ dead executors).
+spark.executor.extraClassPath       ${EXTERN_ROOT}/celeborn/dist/spark/celeborn-client-spark-3-shaded_2.12-0.7.0.jar
+spark.driver.extraClassPath         ${EXTERN_ROOT}/celeborn/dist/spark/celeborn-client-spark-3-shaded_2.12-0.7.0.jar
+spark.shuffle.manager               org.apache.spark.shuffle.celeborn.SparkShuffleManager
+spark.shuffle.service.enabled       false
+spark.celeborn.master.endpoints     ${LAN_IP}:61097
+spark.celeborn.client.shuffle.manager.port 61050
+spark.sql.adaptive.localShuffleReader.enabled false

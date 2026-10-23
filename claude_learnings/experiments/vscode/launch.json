@@ -1,0 +1,18 @@
+{
+  // Copy to <EXTERN_ROOT>/.vscode/launch.json (open VS Code on EXTERN_ROOT).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Attach to the JVM started by report/debug_run.sh (jdwp on localhost:61060, suspend=y).
+      // buildTarget=examples: Metals compiles it before attaching, and maps classes from
+      // examples' dependencies (all of Spark, plus Delta via the provided dep in examples/pom.xml)
+      // to source, so breakpoints bind in Spark AND Delta files.
+      "type": "scala",
+      "request": "attach",
+      "name": "Attach to spark-shell driver (61060)",
+      "buildTarget": "examples",
+      "hostName": "localhost",
+      "port": 61060
+    }
+  ]
+}

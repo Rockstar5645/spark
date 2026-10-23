@@ -1,0 +1,20 @@
+# Rendered by render_conf.sh (envsubst). Local learning cluster.
+# Ports: 61040-61060 for the driver, cluster daemons 61077-61082.
+spark.master                        spark://${LAN_IP}:61077
+spark.executor.cores                2
+spark.executor.memory               2g
+spark.driver.memory                 2g
+spark.cores.max                     4
+spark.ui.port                       61040
+spark.driver.port                   61041
+spark.blockManager.port             61042
+spark.port.maxRetries               16
+
+spark.eventLog.enabled              true
+spark.eventLog.dir                  file:${EXTERN_ROOT}/spark_events
+
+spark.sql.extensions                io.delta.sql.DeltaSparkSessionExtension
+spark.sql.catalog.spark_catalog     org.apache.spark.sql.delta.catalog.DeltaCatalog
+# The SAME jars the examples build target (Metals) compiles against, so what runs is what the
+# debugger shows. Re-publish after editing delta: report/publish_delta.sh
+spark.jars                          ${DELTA_SPARK_JAR},${DELTA_STORAGE_JAR}

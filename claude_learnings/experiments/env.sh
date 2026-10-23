@@ -9,7 +9,9 @@
 #   $EXTERN_ROOT/saved_delta_tables    synthetic tables written by report/setup_tables.scala
 #   $EXTERN_ROOT/{spark_work,spark_tmp,spark_logs,spark_events,celeborn_data}   runtime dirs
 
-_EXP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# BASH_SOURCE in bash; in zsh, ${(%):-%x} is the file being sourced.
+if [ -n "${BASH_SOURCE[0]:-}" ]; then _EXP_SELF="${BASH_SOURCE[0]}"; else _EXP_SELF="$(eval 'echo ${(%):-%x}')"; fi
+_EXP_DIR="$(cd "$(dirname "$_EXP_SELF")" && pwd)"
 # experiments/ -> claude_learnings/ -> spark/ -> EXTERN_ROOT
 export EXTERN_ROOT="${EXTERN_ROOT:-$(cd "$_EXP_DIR/../../.." && pwd)}"
 export EXPERIMENTS="$_EXP_DIR"
